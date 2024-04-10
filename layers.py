@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 from activations import Activation, Relu
@@ -46,12 +47,12 @@ class Layer():
         else:
             raise ValueError("Unsupported activation function")
         if self.debug:
-            print(f"init weights with shape: {self.weights.shape}, activation {self.activation.name}")
+            logging.debug(f"init weights with shape: {self.weights.shape}, activation {self.activation.name}")
 
     def init_bias(self):
         self.bias = np.random.randn(self.n_output, 1)
         if self.debug:
-            print(f"init bias shape: {self.bias.shape}")
+            logging.debug(f"init bias shape: {self.bias.shape}")
 
     def forward(self, input_data):
         self.input = input_data
@@ -60,30 +61,22 @@ class Layer():
         # Apply the activation function on z
         activation_result = self.activation.activate(self.z)
         if self.debug:
-            print(f"forward mul {self.weights.T.shape}x{self.input.shape} => ({self.weights.T.shape[0]},{self.input.shape[1]})")
-            print(f"activation shape: {activation_result.shape}")
+            logging.debug(f"forward: {self.weights.T.shape}x{self.input.shape} => ({self.weights.T.shape[0]},{self.input.shape[1]})")
+            logging.debug(f"activation shape: {activation_result.shape}")
         return activation_result
 
-    def backward(self, output_gradient): # output_gradient is the loss gradient with respect to output
+    def backward(self, loss_gradient): # loss gradient with respect to output
         # Compute the gradient of the activation function with respect to the layer's input
         activation_gradient = self.activation.prime(self.z)
-
-        if self.debug:
-            print("\nComputing the weigths_gradient with:")
-            print(f"output_gradient: {output_gradient.shape}")
-            print(f"activation_gradient: {activation_gradient.shape}")
-            print(f"input shape: {self.input.shape}")
-            print(f"weights shape: {self.weights.shape}")
-
-        loss_activation = output_gradient * activation_gradient
-        weights_gradient = np.dot(self.input, loss_activation.T)
-        bias_gradient = np.sum(loss_activation, axis=0, keepdims=True)
-        # Update the weights and biases using gradient descent
+        # Combine the loss and activation gradient
+        loss_activation_gradient = loss_gradient * activation_gradient
+        # Update the weights and biases using gradients
+        weights_gradient = np.dot(self.input, loss_activation_gradient.T)
+        bias_gradient = np.sum(loss_activation_gradient, axis=0, keepdims=True)
         self.weights -= self.learning_rate * weights_gradient
         self.bias -= self.learning_rate * bias_gradient
-        
         # Compute and return the gradient with respect to the input of this layer
-        input_gradient = np.dot(self.weights, loss_activation)
+        input_gradient = np.dot(self.weights, loss_activation_gradient)
         return input_gradient
 
     def __str__(self):
