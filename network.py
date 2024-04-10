@@ -1,22 +1,25 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
-from layers import Dense
-from activations import Activation, Relu, Tanh, Sigmoid, softmax
-from lossfunctions import MSE
-from datasets import xor_dataset
-
 
 class NN():
 
-    def __init__(self, layers, epochs, loss_function, regular=None, debug=False):
+    def __init__(self, layers, epochs, loss_function, learning_rate, regular=None, debug=False):
         self.layers = layers
         self.epochs = epochs
         self.loss_function = loss_function
         self.regular = regular
         self.debug = debug
-        
+        self.learning_rate = learning_rate
+        self.set_learning_rate()
+        self.set_debug()
 
+    def set_learning_rate(self):
+        for layer in self.layers:
+            layer.set_learning_rate(self.learning_rate)
+    
+    def set_debug(self):
+        for layer in self.layers:
+            layer.set_debug(self.debug)
+        
     def check_layers_matching(self):
         for i in range(len(self.layers) - 1):
             current_layer = self.layers[i]
@@ -78,23 +81,3 @@ class NN():
         plt.ylabel('Error')
         plt.title('Training Error')
         plt.show()
-
-def main():
-
-    X, Y = xor_dataset()
-
-    lr = 1
-    debug = True
-    layers = [
-        Dense(2,3, Relu, lr, debug),
-        Dense(3,2, Relu, lr, debug),
-    ]
-
-    network = NN(layers=layers, epochs=100, loss_function=MSE, debug=debug)
-  
-    print(network)
-    network.train(X, Y, plot=False)
-
-
-if __name__ == "__main__":
-    main()

@@ -4,16 +4,23 @@ from activations import Activation, Relu
 
 class Layer():
 
-    def __init__(self, m_input, n_output, activation : Activation, learning_rate=0.01, debug=False) -> None:
+    def __init__(self, m_input, n_output, activation : Activation):
         self.layer_type = None
         self.m_input = m_input
         self.n_output = n_output
         self.weights = None
         self.activation = activation()
-        self.learning_rate = learning_rate
-        self.debug = debug
+        self.debug = False
         self.init_weights()
         self.init_bias()
+
+    # Use this method in NN to set learning rate
+    def set_learning_rate(self, learning_rate):
+        self.learning_rate = learning_rate
+
+    # Use this method in NN to set to debug
+    def set_debug(self, debug):
+        self.debug = debug
         
     """
     The weights is a (m, n) matrix where n is the number of output neurons and m is the number 
@@ -82,11 +89,11 @@ class Layer():
     def __str__(self):
         return f"{self.layer_type}(n_input: {self.m_input}, n_output: {self.n_output}, activation: {self.activation.name})"
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__str__()
 
 class Dense(Layer):
 
-    def __init__(self, m_input, n_output, activation : Activation, learning_rate, debug) -> None:
-        super().__init__(m_input, n_output, activation, learning_rate, debug)
+    def __init__(self, m_input, n_output, activation : Activation):
+        super().__init__(m_input, n_output, activation)
         self.layer_type = "Dense"
