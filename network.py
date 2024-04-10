@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from layers import Dense
 from activations import Activation, Relu, Tanh, Sigmoid, softmax
 from lossfunctions import MSE
-from datasets import XOR_dataset
+from datasets import xor_dataset
 
 
 class NN():
@@ -81,7 +81,7 @@ class NN():
 
 def main():
 
-    X, Y = XOR_dataset()
+    X, Y = xor_dataset()
 
     lr = 1
     debug = True
