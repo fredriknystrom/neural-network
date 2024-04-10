@@ -11,17 +11,12 @@ class Layer():
         self.n_output = n_output
         self.weights = None
         self.activation = activation()
-        self.debug = False
         self.init_weights()
         self.init_bias()
 
     # Use this method in NN to set learning rate
     def set_learning_rate(self, learning_rate):
         self.learning_rate = learning_rate
-
-    # Use this method in NN to set to debug
-    def set_debug(self, debug):
-        self.debug = debug
         
     """
     The weights is a (m, n) matrix where n is the number of output neurons and m is the number 
@@ -46,13 +41,11 @@ class Layer():
             
         else:
             raise ValueError("Unsupported activation function")
-        if self.debug:
-            logging.debug(f"init weights with shape: {self.weights.shape}, activation {self.activation.name}")
+        logging.debug(f"init weights with shape: {self.weights.shape}, activation {self.activation.name}")
 
     def init_bias(self):
         self.bias = np.random.randn(self.n_output, 1)
-        if self.debug:
-            logging.debug(f"init bias shape: {self.bias.shape}")
+        logging.debug(f"init bias shape: {self.bias.shape}")
 
     def forward(self, input_data):
         self.input = input_data
@@ -60,9 +53,8 @@ class Layer():
         self.z = np.dot(self.weights.T, self.input) + self.bias
         # Apply the activation function on z
         activation_result = self.activation.activate(self.z)
-        if self.debug:
-            logging.debug(f"forward: {self.weights.T.shape}x{self.input.shape} => ({self.weights.T.shape[0]},{self.input.shape[1]})")
-            logging.debug(f"activation shape: {activation_result.shape}")
+        logging.debug(f"forward: {self.weights.T.shape}x{self.input.shape} => ({self.weights.T.shape[0]},{self.input.shape[1]})")
+        logging.debug(f"activation shape: {activation_result.shape}")
         return activation_result
 
     def backward(self, loss_gradient): # loss gradient with respect to output

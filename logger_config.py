@@ -14,6 +14,10 @@ def setup_logging():
     
     # Setup logging with the new log file
     logging.basicConfig(filename=os.path.join(log_directory, f'nn_log{next_log_number}.log'),
-                        level=logging.DEBUG,
+                        level=logging.INFO,
                         filemode='w',  # 'w' for overwrite, 'a' for append
                         format='%(asctime)s - %(levelname)s - %(message)s')
+    
+def change_logging_level(new_level):
+    logger = logging.getLogger()
+    logger.setLevel(new_level)
