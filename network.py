@@ -35,17 +35,15 @@ class NN():
             assert current_layer.n_output == next_layer.m_input, f"Output of {current_layer.info()} and input of {next_layer.info()} don't match"
 
     def train(self, X, Y, batch_size=1, plot=False, ):
+        self.errors = []
         batch_size = 2  # Define your batch size here
         num_samples = X.shape[0]
         batches = int(np.ceil(num_samples / batch_size))
         logging.debug(f"batch_size: {batch_size}")
         logging.debug(f"num_samples: {num_samples}")
         logging.debug(f"batches: {batches}")
-        
-        self.errors = []
-        total_batches_processed = 0  # Initialize counter for total batches processed
-
         for epoch in range(self.epochs):
+            epoch_error = 0
             # Shuffle the dataset at the beginning of each epoch
             indices = np.arange(num_samples)
             np.random.shuffle(indices)
@@ -75,14 +73,14 @@ class NN():
                     error = self.loss_function.loss(y, output)
                     batch_error += error
                     batch_loss_gradient += self.loss_function.prime(y_batch, output)
-
+                epoch_error += batch_error
                 # Back propagation for the batch
                 logging.debug("---- Backpropagation start (batch) ---")
                 avg_loss_gradient = batch_loss_gradient/len(x_batch)
                 for layer in reversed(self.layers):
                     avg_loss_gradient = layer.backward(avg_loss_gradient)
                 logging.debug("--- Backpropagation end (batch) ---\n")
-                
+            self.errors.append(epoch_error/num_samples) 
         if plot:
             self.plot_error()
 
