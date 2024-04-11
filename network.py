@@ -1,4 +1,5 @@
 import logging
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -35,6 +36,7 @@ class NN():
             assert current_layer.n_output == next_layer.m_input, f"Output of {current_layer.info()} and input of {next_layer.info()} don't match"
 
     def train(self, X, Y, batch_size=1, plot=False, ):
+        start = time.time()
         self.errors = []
         batch_size = 2  # Define your batch size here
         num_samples = X.shape[0]
@@ -83,6 +85,7 @@ class NN():
                     avg_loss_gradient = layer.backward(avg_loss_gradient)
                 logging.debug("--- Backpropagation end (batch) ---\n")
             self.errors.append(epoch_error/num_samples) 
+        logging.info(f"Total training time: {round(time.time() - start, 3)}s")
         if plot:
             self.plot_error()
 
