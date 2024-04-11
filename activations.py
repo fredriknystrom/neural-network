@@ -46,41 +46,7 @@ class Tanh(Activation):
         tanh_z = np.tanh(z)
         return 1 - tanh_z**2
 
-
-
 def softmax(z):
     exp_z = np.exp(z)
     softmax_scores = exp_z / np.sum(exp_z, axis=0)
     return softmax_scores
-
-def main():
-    # Example usage:
-    relu = Relu()
-    sigmoid = Sigmoid()
-    tanh = Tanh()
-
-    # Example input vector
-    x = np.array([-1.0, 0.0, 1.0])
-    print(x.shape)
-
-    # Apply activation functions to the input vector
-    relu_result = relu.activate(x)
-    sigmoid_result = sigmoid.activate(x)
-    tanh_result = tanh.activate(x)
-
-    print("ReLU:", relu_result)
-    print("Sigmoid:", sigmoid_result)
-    print("Tanh:", tanh_result)
-
-    # Apply derivative functions to the input vector
-    relu_prime = relu.derivative(x)
-    sigmoid_prime = sigmoid.derivative(x)
-    tanh_prime = tanh.derivative(x)
-
-    print("ReLU prime:", relu_prime)
-    print("Sigmoid prime:", sigmoid_prime)
-    print("Tanh prime:", tanh_prime)
-
-if __name__ == "__main__":
-    main()
-

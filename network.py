@@ -89,8 +89,11 @@ class NN():
         if plot:
             self.plot_error()
 
-    def predict():
-        pass
+    def predict(self, X):
+        output = X
+        for layer in self.layers:
+            output = layer.forward(output)
+        return output
 
     def __repr__(self):
         s = "\nNeural network layers:\n"
