@@ -1,5 +1,7 @@
 .DS_Store
 venv/
 test.py
+tensor.py
 /logger/
 todo.txt
+requirements.txt
