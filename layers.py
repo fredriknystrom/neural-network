@@ -60,11 +60,17 @@ class Layer():
     def backward(self, loss_gradient): # loss gradient with respect to output
         # Compute the gradient of the activation function with respect to the layer's input
         activation_gradient = self.activation.prime(self.z)
+        logging.debug(f"activation_gradient: {activation_gradient.shape}")
+        logging.debug(f"loss_gradient: {loss_gradient.shape}")
         # Combine the loss and activation gradient
         loss_activation_gradient = loss_gradient * activation_gradient
+        logging.debug(f"loss_activation_gradient: {loss_activation_gradient.shape}")
+        logging.debug(f"input: {self.input.shape}")
         # Update the weights and biases using gradients
         weights_gradient = np.dot(self.input, loss_activation_gradient.T)
         bias_gradient = np.sum(loss_activation_gradient, axis=0, keepdims=True)
+        logging.debug(f"weights: {self.weights.shape}")
+        logging.debug(f"weights_gradient: {weights_gradient.shape}")
         self.weights -= self.learning_rate * weights_gradient
         self.bias -= self.learning_rate * bias_gradient
         # Compute and return the gradient with respect to the input of this layer

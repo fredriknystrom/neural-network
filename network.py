@@ -50,7 +50,7 @@ class NN():
             X_shuffled = X[indices]
             Y_shuffled = Y[indices]
             for batch_num in range(batches):
-                logging.info(f"Epoch: {epoch}/{self.epochs} - Batch: {batch_num}/{batches}")
+                #logging.info(f"Epoch: {epoch}/{self.epochs} - Batch: {batch_num}/{batches}")
                 batch_error = 0
                 batch_loss_gradient = 0
                 start_idx = batch_num * batch_size
@@ -63,19 +63,21 @@ class NN():
                     logging.debug(f"x: {x}")
                     logging.debug(f"y: {y}")
                     # Forward propagation for the batch
-                    logging.debug("--- Forwarding start (batch) ---")
+                    logging.debug(f"--- Forwarding start (batch {batch_num}) ---")
                     output = x.reshape(-1, 1)
                     for layer in self.layers:
                         output = layer.forward(output)
-                    logging.debug("--- Forwarding end (batch) ---\n")
+                    logging.debug(f"--- Forwarding end (batch {batch_num}) ---\n")
 
                     # Calculate error for the batch with our loss function
                     error = self.loss_function.loss(y, output)
                     batch_error += error
-                    batch_loss_gradient += self.loss_function.prime(y_batch, output)
+                    batch_loss_gradient += self.loss_function.prime(y, output)
                 epoch_error += batch_error
+                logging.info(f"Epoch {epoch} error: {epoch_error}")
                 # Back propagation for the batch
                 logging.debug("---- Backpropagation start (batch) ---")
+                logging.debug(f"batch_loss_gradient: {batch_loss_gradient}")
                 avg_loss_gradient = batch_loss_gradient/len(x_batch)
                 for layer in reversed(self.layers):
                     avg_loss_gradient = layer.backward(avg_loss_gradient)
