@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from logger_config import setup_logging, change_logging_level
+from nn.logger_config import setup_logging, change_logging_level
 setup_logging()
 
 class NN():

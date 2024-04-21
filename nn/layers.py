@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 
-from activations import Activation, Relu
+from nn.activations import Activation, Relu
 
 class Layer():
 
