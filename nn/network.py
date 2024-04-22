@@ -3,8 +3,8 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from nn.logger_config import setup_logging, change_logging_level
-setup_logging()
+from nn.logger_config import change_logging_level
+
 
 class NN():
 
@@ -33,67 +33,102 @@ class NN():
             current_layer = self.layers[i]
             next_layer = self.layers[i + 1]
 
-            assert current_layer.n_output == next_layer.m_input, f"Output of {current_layer.info()} and input of {next_layer.info()} don't match"
+            assert current_layer.n_output == next_layer.m_input, f"Output of {current_layer.info()} and input of {next_layer.info()} does not match"
+
+    def compute_total_regularization_loss(self):
+        total_reg_loss = 0
+        for layer in self.layers:
+            reg_loss = layer.compute_regularization_loss()
+            total_reg_loss += reg_loss
+        return total_reg_loss
 
     def train(self, X, Y, batch_size=1, plot=False, ):
         start = time.time()
-        self.errors = []
-        batch_size = 2  # Define your batch size here
+        self.loss = []
+        self.accuracy = []
         num_samples = X.shape[0]
+        logging.debug(f"num_samples: {num_samples}")
+
         batches = int(np.ceil(num_samples / batch_size))
         logging.debug(f"batch_size: {batch_size}")
         logging.debug(f"num_samples: {num_samples}")
         logging.debug(f"batches: {batches}")
         for epoch in range(self.epochs):
-            epoch_error = 0
+            epoch_loss = 0
+            epoch_correct_predictions = 0  # To count correct predictions for accuracy
             # Shuffle the dataset at the beginning of each epoch
             indices = np.arange(num_samples)
             np.random.shuffle(indices)
             X_shuffled = X[indices]
             Y_shuffled = Y[indices]
             for batch_num in range(batches):
-                #logging.info(f"Epoch: {epoch}/{self.epochs} - Batch: {batch_num}/{batches}")
-                batch_error = 0
+                logging.info(f"Epoch: {epoch}/{self.epochs} - Batch: {batch_num}/{batches}")
+                batch_loss = 0
                 batch_loss_gradient = 0
                 start_idx = batch_num * batch_size
                 end_idx = start_idx + batch_size
                 x_batch = X_shuffled[start_idx:end_idx]
                 y_batch = Y_shuffled[start_idx:end_idx]
-                logging.debug(f"x_batch: {x_batch}")
-                logging.debug(f"y_batch: {y_batch}")
+                #logging.debug(f"x_batch: {x_batch}")
+                #logging.debug(f"y_batch: {y_batch}")
                 for x, y in zip(x_batch, y_batch):
-                    logging.debug(f"x: {x}")
-                    logging.debug(f"y: {y}")
+                    logging.debug(f"x shape: {x.shape}")
+                    logging.debug(f"y shape: {y.shape}")
                     # Forward propagation for the batch
                     logging.debug(f"--- Forwarding start (batch {batch_num}) ---")
                     output = x.reshape(-1, 1)
                     for layer in self.layers:
                         output = layer.forward(output)
                     logging.debug(f"--- Forwarding end (batch {batch_num}) ---\n")
-
+                    logging.debug(f"output.shape: {output.shape}")
+                    logging.debug(f"output value: {output}")
+                    logging.debug(f"y: {y}")
                     # Calculate error for the batch with our loss function
-                    error = self.loss_function.loss(y, output)
-                    batch_error += error
+                    loss = self.loss_function.loss(y, output)
+                    regularization_loss = self.compute_total_regularization_loss()
+                    logging.debug(f"regularization_loss: {regularization_loss}")
+                    logging.debug(f"loss: {loss}")
+                    combined_loss = loss + regularization_loss
+                    logging.debug(f"combined_loss: {combined_loss}")
+                    batch_loss += combined_loss
                     batch_loss_gradient += self.loss_function.prime(y, output)
-                epoch_error += batch_error
-                logging.info(f"Epoch {epoch} error: {epoch_error}")
+
+                    # Calculate predictions and update correct_count
+                    predicted_class = np.argmax(output, axis=0)[0]  # Assuming output is column vector
+                    if predicted_class == y:
+                        epoch_correct_predictions += 1
+
+                epoch_loss += batch_loss
                 # Back propagation for the batch
                 logging.debug("---- Backpropagation start (batch) ---")
                 logging.debug(f"batch_loss_gradient: {batch_loss_gradient}")
                 avg_loss_gradient = batch_loss_gradient/len(x_batch)
+                logging.debug(f"len(x_batch): {len(x_batch)}")
+                logging.debug(f"avg_loss_gradient: {avg_loss_gradient}")
                 for layer in reversed(self.layers):
                     avg_loss_gradient = layer.backward(avg_loss_gradient)
                 logging.debug("--- Backpropagation end (batch) ---\n")
-            self.errors.append(epoch_error/num_samples) 
+             
+
+            avg_epoch_loss = epoch_loss/num_samples
+            epoch_accuracy = epoch_correct_predictions/num_samples
+            self.loss.append(avg_epoch_loss)
+            self.accuracy.append(epoch_accuracy)
+            print(f"Correct pred: {epoch_correct_predictions}")
+            logging.info(f"Epoch {epoch}  - accuracy: {epoch_accuracy} - loss: {avg_epoch_loss}")
+            print(f"Epoch {epoch} - accuracy: {epoch_accuracy} - loss: {avg_epoch_loss}")
         logging.info(f"Total training time: {round(time.time() - start, 3)}s")
         if plot:
-            self.plot_error()
+            self.plot()
 
     def predict(self, X):
         output = X
         for layer in self.layers:
             output = layer.forward(output)
         return output
+    
+    def get_weights(self):
+        return [(layer.layer_type, layer.get_weights(), layer.get_biases()) for layer in self.layers]
 
     def __repr__(self):
         s = "\nNeural network layers:\n"
@@ -101,9 +136,24 @@ class NN():
             s += str(layer) + "\n"
         return s
 
-    def plot_error(self):
-        plt.plot(range(len(self.errors)), self.errors)
-        plt.xlabel('Epochs')
-        plt.ylabel('Error')
-        plt.title('Training Error')
+    def plot(self):
+        # Plot training history
+        plt.figure(figsize=(12, 5))
+        
+        plt.subplot(1, 2, 1)
+        plt.plot(self.loss, label='Loss')
+        #plt.plot(history.history['val_loss'], label='Validation Loss')
+        plt.title('Training and Validation Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+
+        plt.subplot(1, 2, 2)
+        plt.plot(self.accuracy, label='Accuracy')
+        #plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+        plt.title('Training and Validation Accuracy')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend()
+
         plt.show()
