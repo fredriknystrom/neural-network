@@ -121,6 +121,16 @@ class NN():
         if plot:
             self.plot()
 
+    def evaluate(self, test_X, test_Y):
+        """ Evaluate the model on test data """
+        print('test_X', test_X.shape)
+        print('test_Y', test_Y.shape)
+        print(test_X[0].shape)
+        # NOTE: reshape(-1,1) prob doesnt work for any dim here....
+        predictions = [self.predict(x.reshape(-1,1)) for x in test_X]
+        loss = self.loss_function.loss(test_Y, predictions)
+        return loss
+
     def predict(self, X):
         output = X
         for layer in self.layers:
