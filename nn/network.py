@@ -42,35 +42,39 @@ class NN():
             total_reg_loss += reg_loss
         return total_reg_loss
 
-    def train(self, X, Y, batch_size=1, plot=False, ):
+    def train(self, X_train, Y_train, X_val, Y_val, batch_size=1, plot=False):
         start = time.time()
         self.loss = []
+        self.val_loss = []
         self.accuracy = []
-        num_samples = X.shape[0]
-        logging.debug(f"num_samples: {num_samples}")
-
+        num_samples = X_train.shape[0]
         batches = int(np.ceil(num_samples / batch_size))
+
         logging.debug(f"batch_size: {batch_size}")
         logging.debug(f"num_samples: {num_samples}")
+        logging.debug(f"num_samples: {num_samples}")
         logging.debug(f"batches: {batches}")
+
         for epoch in range(self.epochs):
             epoch_loss = 0
-            epoch_correct_predictions = 0  # To count correct predictions for accuracy
-            # Shuffle the dataset at the beginning of each epoch
+            epoch_correct_predictions = 0
+
+            # Shuffle dataset at the start of each epoch
             indices = np.arange(num_samples)
             np.random.shuffle(indices)
-            X_shuffled = X[indices]
-            Y_shuffled = Y[indices]
+            X_shuffled = X_train[indices]
+            Y_shuffled = Y_train[indices]
+
             for batch_num in range(batches):
                 logging.info(f"Epoch: {epoch}/{self.epochs} - Batch: {batch_num}/{batches}")
-                batch_loss = 0
-                batch_loss_gradient = 0
                 start_idx = batch_num * batch_size
                 end_idx = start_idx + batch_size
                 x_batch = X_shuffled[start_idx:end_idx]
                 y_batch = Y_shuffled[start_idx:end_idx]
-                #logging.debug(f"x_batch: {x_batch}")
-                #logging.debug(f"y_batch: {y_batch}")
+
+                batch_loss = 0
+                batch_loss_gradient = 0
+                
                 for x, y in zip(x_batch, y_batch):
                     logging.debug(f"x shape: {x.shape}")
                     logging.debug(f"y shape: {y.shape}")
@@ -94,7 +98,7 @@ class NN():
                     batch_loss_gradient += self.loss_function.prime(y, output)
 
                     # Calculate predictions and update correct_count
-                    predicted_class = np.argmax(output, axis=0)[0]  # Assuming output is column vector
+                    predicted_class = np.argmax(output, axis=0)[0]
                     if predicted_class == y:
                         epoch_correct_predictions += 1
 
@@ -111,23 +115,27 @@ class NN():
              
 
             avg_epoch_loss = epoch_loss/num_samples
-            epoch_accuracy = epoch_correct_predictions/num_samples
             self.loss.append(avg_epoch_loss)
+            epoch_accuracy = epoch_correct_predictions/num_samples
             self.accuracy.append(epoch_accuracy)
+            avg_val_loss = self.evaluate(X_val, Y_val)
+            self.val_loss.append(avg_val_loss)
+
             print(f"Correct pred: {epoch_correct_predictions}")
-            logging.info(f"Epoch {epoch}  - accuracy: {epoch_accuracy} - loss: {avg_epoch_loss}")
+            logging.info(f"Epoch {epoch}  - accuracy: {epoch_accuracy} - loss: {avg_epoch_loss} - val_loss: {avg_val_loss}")
             print(f"Epoch {epoch} - accuracy: {epoch_accuracy} - loss: {avg_epoch_loss}")
-        logging.info(f"Total training time: {round(time.time() - start, 3)}s")
+
         if plot:
             self.plot()
+        logging.info(f"Total training time: {round(time.time() - start, 3)}s")
 
     def evaluate(self, test_X, test_Y):
         """ Evaluate the model on test data """
-        print('test_X', test_X.shape)
-        print('test_Y', test_Y.shape)
-        print(test_X[0].shape)
+        #print('test_X', test_X.shape)
+        #print('test_Y', test_Y.shape)
+        #print(test_X[0].shape)
         # NOTE: reshape(-1,1) prob doesnt work for any dim here....
-        predictions = [self.predict(x.reshape(-1,1)) for x in test_X]
+        predictions = np.array([self.predict(x.reshape(-1,1)) for x in test_X])
         loss = self.loss_function.loss(test_Y, predictions)
         return loss
 
